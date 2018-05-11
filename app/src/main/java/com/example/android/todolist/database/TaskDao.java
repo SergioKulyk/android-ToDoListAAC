@@ -25,5 +25,5 @@ public interface TaskDao {
     void deleteTask(TaskEntry taskEntry);
 
     @Query("SELECT * FROM task WHERE id = :id")
-    void loadTaskById(int id);
+    TaskEntry loadTaskById(int id);
 }
