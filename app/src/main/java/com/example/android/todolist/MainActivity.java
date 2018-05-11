@@ -27,6 +27,9 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import com.example.android.todolist.database.AppDatabase;
+import com.example.android.todolist.database.TaskEntry;
+
+import java.util.List;
 
 import static android.support.v7.widget.DividerItemDecoration.VERTICAL;
 
@@ -73,8 +76,18 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
 
             // Called when a user swipes left or right on a ViewHolder
             @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+            public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 // Here is where you'll implement swipe to delete
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        int position = viewHolder.getAdapterPosition();
+                        List<TaskEntry> getEntryTasks = mAdapter.getEntryTasks();
+                        mDb.taskDao().deleteTask(getEntryTasks.get(position));
+                    }
+                });
+                // call the diskIO execute method with a new Runnable and implement its run method
+                retrieveTasks();
             }
         }).attachToRecyclerView(mRecyclerView);
 
@@ -105,13 +118,20 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
     @Override
     protected void onResume() {
         super.onResume();
+        retrieveTasks();
+    }
+
+    private void retrieveTasks() {
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
+                final List<TaskEntry> tasks = mDb.taskDao().loadAllTasks();
+                // We will be able to simplify this once we learn more
+                // about Android Architecture Components
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mAdapter.setTasks(mDb.taskDao().loadAllTasks());
+                        mAdapter.setTasks(tasks);
                     }
                 });
             }

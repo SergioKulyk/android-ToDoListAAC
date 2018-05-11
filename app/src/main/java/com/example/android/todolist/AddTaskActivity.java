@@ -119,10 +119,11 @@ public class AddTaskActivity extends AppCompatActivity {
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
+                // COMPLETED (3) Move the remaining logic inside the run method
                 mDb.taskDao().insertTask(taskEntry);
+                finish();
             }
         });
-        finish();
     }
 
     /**
