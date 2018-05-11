@@ -51,6 +51,7 @@ public class AddTaskActivity extends AppCompatActivity {
 
     private int mTaskId = DEFAULT_TASK_ID;
 
+    // Member variable for the Database
     private AppDatabase mDb;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +60,7 @@ public class AddTaskActivity extends AppCompatActivity {
 
         initViews();
 
-        mDb = AppDatabase.getInstance(this);
+        mDb = AppDatabase.getInstance(getApplicationContext());
 
         if (savedInstanceState != null && savedInstanceState.containsKey(INSTANCE_TASK_ID)) {
             mTaskId = savedInstanceState.getInt(INSTANCE_TASK_ID, DEFAULT_TASK_ID);

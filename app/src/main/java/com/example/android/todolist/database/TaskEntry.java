@@ -4,7 +4,6 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
-import android.arch.persistence.room.Update;
 
 import java.util.Date;
 
@@ -15,7 +14,7 @@ public class TaskEntry {
     private int id;
     private String description;
     private int priority;
-    @ColumnInfo(name="updated_at")
+    @ColumnInfo(name = "updated_at")
     private Date updatedAt;
 
     @Ignore
