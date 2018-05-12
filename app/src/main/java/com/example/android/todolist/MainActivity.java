@@ -18,6 +18,9 @@ package com.example.android.todolist;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -110,20 +113,15 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
         });
 
         mDb = AppDatabase.getInstance(getApplicationContext());
-        retrieveTasks();
+        setupViewModel();
     }
 
-    /**
-     * This method is called after this activity has been paused or restarted.
-     * Often, this is after new data has been inserted through an AddTaskActivity,
-     * so this re-queries the database data for any changes.
-     */
-
-    private void retrieveTasks() {
-        final LiveData<List<TaskEntry>> tasks = mDb.taskDao().loadAllTasks();
-        tasks.observe(this, new Observer<List<TaskEntry>>() {
+    private void setupViewModel() {
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getTasks().observe(this, new Observer<List<TaskEntry>>() {
             @Override
             public void onChanged(@Nullable List<TaskEntry> taskEntries) {
+                Log.d(TAG, "Receiving database update from LiveData");
                 mAdapter.setTasks(taskEntries);
             }
         });
