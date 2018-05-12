@@ -16,14 +16,18 @@
 
 package com.example.android.todolist;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.View;
 
 import com.example.android.todolist.database.AppDatabase;
@@ -78,14 +82,12 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
             @Override
             public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 // Here is where you'll implement swipe to delete
-                // call the diskIO execute method with a new Runnable and implement its run method
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
                         int position = viewHolder.getAdapterPosition();
                         List<TaskEntry> tasks = mAdapter.getTasks();
                         mDb.taskDao().deleteTask(tasks.get(position));
-                        retrieveTasks();
                     }
                 });
             }
@@ -108,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
         });
 
         mDb = AppDatabase.getInstance(getApplicationContext());
+        retrieveTasks();
     }
 
     /**
@@ -115,25 +118,13 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
      * Often, this is after new data has been inserted through an AddTaskActivity,
      * so this re-queries the database data for any changes.
      */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        retrieveTasks();
-    }
 
     private void retrieveTasks() {
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+        final LiveData<List<TaskEntry>> tasks = mDb.taskDao().loadAllTasks();
+        tasks.observe(this, new Observer<List<TaskEntry>>() {
             @Override
-            public void run() {
-                final List<TaskEntry> tasks = mDb.taskDao().loadAllTasks();
-                // We will be able to simplify this once we learn more
-                // about Android Architecture Components
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter.setTasks(tasks);
-                    }
-                });
+            public void onChanged(@Nullable List<TaskEntry> taskEntries) {
+                mAdapter.setTasks(taskEntries);
             }
         });
     }
@@ -141,9 +132,8 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
     @Override
     public void onItemClickListener(int itemId) {
         // Launch AddTaskActivity adding the itemId as an extra in the intent
-        Intent addTaskIntent = new Intent(this, AddTaskActivity.class);
-        addTaskIntent.putExtra(AddTaskActivity.EXTRA_TASK_ID, itemId);
-        startActivity(addTaskIntent);
+        Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
+        intent.putExtra(AddTaskActivity.EXTRA_TASK_ID, itemId);
+        startActivity(intent);
     }
 }
-

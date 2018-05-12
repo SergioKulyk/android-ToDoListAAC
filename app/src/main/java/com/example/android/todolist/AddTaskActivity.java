@@ -72,15 +72,16 @@ public class AddTaskActivity extends AppCompatActivity {
             if (mTaskId == DEFAULT_TASK_ID) {
                 // populate the UI
                 mTaskId = intent.getIntExtra(EXTRA_TASK_ID, DEFAULT_TASK_ID);
-
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
-                        final TaskEntry taskEntry = mDb.taskDao().loadTaskById(mTaskId);
+                        final TaskEntry task = mDb.taskDao().loadTaskById(mTaskId);
+                        // We will be able to simplify this once we learn more
+                        // about Android Architecture Components
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                populateUI(taskEntry);
+                                populateUI(task);
                             }
                         });
                     }
@@ -134,17 +135,17 @@ public class AddTaskActivity extends AppCompatActivity {
         int priority = getPriorityFromViews();
         Date date = new Date();
 
-        final TaskEntry taskEntry = new TaskEntry(description, priority, date);
+        final TaskEntry task = new TaskEntry(description, priority, date);
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
                 if (mTaskId == DEFAULT_TASK_ID) {
-                    // Otherwise update it
-                    // call finish in any case
-                    mDb.taskDao().insertTask(taskEntry);
+                    // insert new task
+                    mDb.taskDao().insertTask(task);
                 } else {
-                    taskEntry.setId(mTaskId);
-                    mDb.taskDao().updateTask(taskEntry);
+                    //update task
+                    task.setId(mTaskId);
+                    mDb.taskDao().updateTask(task);
                 }
                 finish();
             }
